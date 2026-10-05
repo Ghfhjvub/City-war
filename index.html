@@ -847,14 +847,15 @@ cv.addEventListener('pointerdown',e=>{
     return;
   }
   mouse.seen=false; setTouch(true);
-  const s=e.clientX<W/2?sticks.move:sticks.aim;
-  if(s.id===null){ s.id=e.pointerId; s.bx=s.x=e.clientX; s.by=s.y=e.clientY; s.dx=s.dy=0; try{cv.setPointerCapture(e.pointerId);}catch(_){} }
+  const s=(e.clientX<W/2&&sticks.move.id===null)?sticks.move:sticks.aim;
+  if(s.id===null){ s.id=e.pointerId; s.bx=s.x=e.clientX; s.by=s.y=e.clientY; s.dx=s.dy=0; s.turn=0; try{cv.setPointerCapture(e.pointerId);}catch(_){} }
   e.preventDefault();
 });
 cv.addEventListener('pointermove',e=>{
   if(e.pointerType==='mouse'){ mouse.seen=true; mouse.x=e.clientX; mouse.y=e.clientY; return; }
   for(const s of [sticks.move,sticks.aim]){
     if(s.id===e.pointerId){
+      if(s===sticks.aim){ s.turn=(s.turn||0)+(e.clientX-s.x)*.007; s.x=e.clientX; s.y=e.clientY; continue; }
       s.x=e.clientX; s.y=e.clientY;
       let dx=(s.x-s.bx)/STICK_R, dy=(s.y-s.by)/STICK_R; const m=Math.hypot(dx,dy);
       if(m>1){dx/=m;dy/=m;}
@@ -865,7 +866,7 @@ cv.addEventListener('pointermove',e=>{
 });
 function endPtr(e){
   if(e.pointerType==='mouse'){ if(e.button===0||e.type==='pointercancel') mouse.down=false; return; }
-  for(const s of [sticks.move,sticks.aim]) if(s.id===e.pointerId){ s.id=null; s.dx=s.dy=0; }
+  for(const s of [sticks.move,sticks.aim]) if(s.id===e.pointerId){ s.id=null; s.dx=s.dy=0; s.turn=0; }
 }
 cv.addEventListener('pointerup',endPtr); cv.addEventListener('pointercancel',endPtr);
 addEventListener('pointerup',e=>{ if(e.pointerType==='mouse') mouse.down=false; });
@@ -951,7 +952,7 @@ function readInput(dt){
   if(s.id!==null){ const m=Math.hypot(s.dx,s.dy); if(m>.18){ const k=Math.min(1,(m-.18)/.7); fw=-s.dy/m*k; st=s.dx/m*k; } }
   const a=sticks.aim, am=Math.hypot(a.dx,a.dy);
   pl.aimA+=tr*2.2*dt;
-  if(a.id!==null&&am>.2) pl.aimA+=a.dx*3*dt;
+  pl.aimA+=a.turn||0; a.turn=0;
   const fire=!!keys.Space||fireBtn||(mouse.seen&&mouse.down);
   if(fireBtn&&a.id===null){
     let bd=700,be=null;
@@ -1515,7 +1516,7 @@ function drawHUD(){
   ctx.globalAlpha=1;
   // عصي اللمس
   if(touchMode){
-    for(const [s,def] of [[sticks.move,[90,H-90]],[sticks.aim,[W-110,H-170]]]){
+    for(const [s,def] of [[sticks.move,[90,H-90]]]){
       const active=s.id!==null; const bx=active?s.bx:def[0], by=active?s.by:def[1];
       ctx.globalAlpha=active?.35:.12; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(bx,by,STICK_R,0,TAU); ctx.fill();
       ctx.globalAlpha=active?.55:.15; ctx.beginPath(); ctx.arc(bx+(active?s.dx*STICK_R:0),by+(active?s.dy*STICK_R:0),26,0,TAU); ctx.fill();
