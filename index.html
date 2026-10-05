@@ -158,7 +158,7 @@ body.scene .screen:not(#scrLoad){background:rgba(0,0,0,.28)}
       <div><b>قنبلة / مدفع الدبابة:</b> G</div><div><b>ركوب / نزول:</b> E</div>
       <div><b>إيقاف:</b> P</div><div><b>إظهار أزرار اللمس:</b> T</div>
       <div style="grid-column:1/3">📱 <b>الهاتف:</b> عصا اليسار للحركة • عصا اليمين للتصويب وتطلق النار تلقائياً • أو زر 🔥 للتصويب التلقائي</div>
-      <div style="grid-column:1/3">🤝 معك رفيقان يقاتلان إلى جانبك • كل مستوى فيه 30 عدواً • 3 مراحل × 5 مستويات</div>
+      <div style="grid-column:1/3">🤝 أنقذ الأسرى لينضموا إلى جيشك • اركب الدبابات والسيارات المسلحة • 50+ عدواً في كل مستوى • 5 مراحل × 5 مستويات • أنقذ ابنك من المافيا!</div>
     </div>
   </details>
   <p id="mSync"></p>
@@ -244,7 +244,7 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const WORLD=6400, ROAD=150, CELL=160, NC=Math.ceil(WORLD/CELL);
 const roadX=[800,2000,3200,4400,5600], roadY=[800,2000,3200,4400,5600];
 const SX=3200, SY=3290;
-const PER_LEVEL=30, STAGE_LEVELS=5;
+let PER_LEVEL=50; const STAGE_LEVELS=5;
 const THEMES=[
  {id:'city',icon:'🏙',name:'المدينة',desc:'قتال في شوارع المدينة ومنازلها',g0:'#4d7a3a',gl:'rgba(255,255,255,.05)',gd:'rgba(0,0,0,.07)',gb:'rgba(40,90,30,.25)',road:'#3a3d42',edge:'#8d8d86',line:'#d8c75a',wall:'#4a4038',
   roofs:['#8a4b3a','#6b6f78','#7a5c3a','#4f6a5a','#8a7a4a'],floors:['#c9b48a','#b7a98f','#c4b098'],rugs:['#7a2e2e','#2e4a7a','#3e6a3e'],tree:['#2e5d28','#3f7a35','#5a9a48'],park:.15,ec:null},
@@ -253,7 +253,11 @@ const THEMES=[
   ec:{rifle:['#3d4650','#252b33'],runner:['#6a3a55','#40203a'],heavy:['#2a2d3a','#171923'],sniper:['#244048','#14282e'],tank:['#3e4a50']}},
  {id:'ice',icon:'❄',name:'الجليد',desc:'صقيع وثلوج — الأرض زلقة والضباب كثيف',g0:'#dbe7f0',gl:'rgba(255,255,255,.35)',gd:'rgba(120,150,180,.18)',gb:'rgba(170,200,225,.35)',road:'#8fa6ba',edge:'#cfe0ee',line:'#ffffff',wall:'#5d6b78',slide:true,
   roofs:['#e8f0f6','#cfdce8','#b9ccdc','#f3f7fa','#9eb4c8'],floors:['#cdd6dd','#c0cbd4','#d6dde3'],rugs:['#6a8fb3','#7a6aa6','#5a9a9a'],tree:['#2c5a52','#dbe9f2','#ffffff'],park:.2,
-  ec:{rifle:['#c8d4dc','#8fa2b0'],runner:['#d8c8c8','#a88a8a'],heavy:['#9fb2c2','#6a7f92'],sniper:['#e4edf2','#aebdc8'],tank:['#aab8c2']}}
+  ec:{rifle:['#c8d4dc','#8fa2b0'],runner:['#d8c8c8','#a88a8a'],heavy:['#9fb2c2','#6a7f92'],sniper:['#e4edf2','#aebdc8'],tank:['#aab8c2']}},
+ {id:'lava',icon:'🌋',name:'الأرض البركانية',desc:'منازل مدمّرة وحمم متفجرة — احذر برك الحمم',g0:'#3b2a25',gl:'rgba(255,120,40,.06)',gd:'rgba(0,0,0,.18)',gb:'rgba(120,30,10,.3)',road:'#24201f',edge:'#6a3a1a',line:'#ff8a2a',wall:'#2a1e1b',ruin:1,
+  roofs:['#2a1f1c','#3b2a22','#4a2e22','#33282a','#241c1a'],floors:['#5a4a42','#4e413b','#5f4c40'],rugs:['#5a1a1a','#3a2a2a','#4a2a1a'],tree:['#1a100d','#2b1d17','#5a2a14'],park:.2,ec:null},
+ {id:'cave',icon:'🕳',name:'الكهوف',desc:'ظلام دامس ومعاقل صخرية — وكر زعيم المافيا',g0:'#2a2a31',gl:'rgba(255,255,255,.04)',gd:'rgba(0,0,0,.22)',gb:'rgba(10,10,20,.35)',road:'#1b1b20',edge:'#4a4a55',line:'#6a6a78',wall:'#3b3b46',ruin:1,
+  roofs:['#2e2e38','#34343f','#292932','#3a3a45','#25252d'],floors:['#454552','#3e3e4b','#4b4b58'],rugs:['#3a2a4a','#2a3a4a','#4a3a2a'],tree:['#24242c','#3a3a46','#575765'],park:.3,ec:null}
 ];
 const TOTAL=THEMES.length*STAGE_LEVELS;
 const grassC={};
@@ -270,7 +274,10 @@ const ET={
  runner:{hp:38 ,spd:178,r:14,range:48 ,col:'#8b3a3a',hel:'#5a2020',score:80 ,w:'knife',glen:8},
  heavy :{hp:260,spd:62 ,r:19,range:300,col:'#3c3f5a',hel:'#262840',score:250,w:'shotgun',glen:28},
  sniper:{hp:55 ,spd:72 ,r:14,range:950,col:'#2f5d62',hel:'#1f3d40',score:220,w:'sniper',glen:38},
- tank  :{hp:750,spd:70 ,r:44,range:620,col:'#6b3a3a',hel:'#444',score:900,w:'tank',glen:0}
+ tank  :{hp:750,spd:70 ,r:44,range:620,col:'#6b3a3a',hel:'#444',score:900,w:'tank',glen:0},
+ tankL :{hp:430,spd:125,r:36,range:560,col:'#7a5a2a',hel:'#444',score:600,w:'tank',glen:0,sc:.82,cd:2.2,sd:42,rad:100},
+ tankH :{hp:1500,spd:50,r:50,range:720,col:'#4a2a2a',hel:'#444',score:1500,w:'tank',glen:0,sc:1.14,cd:3.2,sd:110,rad:150},
+ boss  :{hp:2600,spd:92,r:21,range:480,col:'#0e0e12',hel:'#000',score:6000,w:'rifle',glen:30,bu:7}
 };
 const MG={smg:.04,rifle:.05,hit:.04,metal:.05,death:.06,ric:.07,pistol:.03,wood:.05};
 
@@ -363,7 +370,7 @@ function engineOff(){
 let W=0,H=0,DPR=1,zoom=1;
 let state='menu';
 let pl,enemies,bullets,grenades,parts,texts,pickups,vehicles,decals,wrecks,pending,msgs;
-let solids=[],grid=new Map(),houses=[],trees=[];
+let solids=[],grid=new Map(),houses=[],trees=[],pools=[],caps=[],capFreed=0,sonFree=false,sonMsg=false;
 let wave,waveState,waveTimer,queue,spawnT,score,kills,combo,comboT,grass=null,time=0,lvIdx=0,allies=[],TH=null,lvTime=0,allyDown=0,wx=[],lightT=0,flashL=0,strag=0;
 const cam={x:SX,y:SY,shake:0};
 
@@ -443,7 +450,7 @@ function addHouse(x,y,w,h){
   const horiz=side===0||side===2;
   const dpos=horiz?rnd(T+gap/2+14,w-T-gap/2-14):rnd(T+gap/2+14,h-T-gap/2-14);
   const hs={x,y,w,h,side,alpha:1,roof:TH.roofs[rint(0,TH.roofs.length-1)],floor:TH.floors[rint(0,2)],rug:TH.rugs[rint(0,2)]};
-  const W_=(a,b,c,d)=>addSolid(a,b,c,d,'wall');
+  const W_=(a,b,c,d)=>{const s=addSolid(a,b,c,d,'wall'); if(TH.ruin&&Math.random()<.3) s.dead=true;};
   if(side===0){ W_(x,y,dpos-gap/2,T); W_(x+dpos+gap/2,y,w-dpos-gap/2,T);} else W_(x,y,w,T);
   if(side===2){ W_(x,y+h-T,dpos-gap/2,T); W_(x+dpos+gap/2,y+h-T,w-dpos-gap/2,T);} else W_(x,y+h-T,w,T);
   if(side===3){ W_(x,y+T,T,dpos-gap/2-T); W_(x,y+dpos+gap/2,T,h-T-dpos-gap/2);} else W_(x,y+T,T,h-2*T);
@@ -460,9 +467,11 @@ function addHouse(x,y,w,h){
     if(dist(cx+17,cy+17,hs.in.x,hs.in.y)>90) addCrate(cx,cy);
   }
 }
-function mkVeh(type,x,y,a){
-  const car=type==='car', cols=['#b33','#36a','#d9a321','#cfcfcf','#2a8','#838'];
-  return {type,x,y,a,ta:a,speed:0,hp:car?220:900,max:car?220:900,r:car?30:44,col:car?cols[rint(0,5)]:'#4a6b3a',occ:false,dead:false,cd:0,mcd:0,fl:0};
+const VK={car:[{n:'جيب مسلح',hp:240,s:430,r:30,dm:11,rt:.07},{n:'سيارة رشاش ثقيل',hp:320,s:380,r:30,dm:20,rt:.06}],
+ tank:[{n:'دبابة',hp:900,s:170,r:44,dm:16,rt:.09,cd:1.1,rad:135,ed:180,sc:1},{n:'دبابة خفيفة',hp:560,s:250,r:36,dm:12,rt:.06,cd:.8,rad:110,ed:120,sc:.82},{n:'دبابة ثقيلة',hp:1600,s:115,r:50,dm:24,rt:.08,cd:1.7,rad:175,ed:260,sc:1.14}]};
+function mkVeh(type,x,y,a,k){
+  const car=type==='car', cols=['#b33','#36a','#d9a321','#cfcfcf','#2a8','#838']; k=k||0; const V=VK[type][k];
+  return {type,k,x,y,a,ta:a,speed:0,hp:V.hp,max:V.hp,r:V.r,col:car?cols[rint(0,5)]:['#4a6b3a','#6b6a3a','#3a4a5a'][k],occ:false,dead:false,cd:0,mcd:0,fl:0};
 }
 function genWorld(){
   solids=[]; grid=new Map(); houses=[]; trees=[]; vehicles=[]; wrecks=[]; decals=[];
@@ -505,7 +514,7 @@ function genWorld(){
     const x=a?roadX[rint(0,roadX.length-1)]:rnd(200,WORLD-200), y=a?rnd(200,WORLD-200):roadY[rint(0,roadY.length-1)];
     if(dist(x,y,SX,SY)<350||!isFree(x,y,52)) continue;
     let ok=true; for(const v of vehicles) if(dist(v.x,v.y,x,y)<300){ok=false;break;}
-    if(ok){ vehicles.push(mkVeh('tank',x,y,a?Math.PI/2:0)); nt++; }
+    if(ok){ vehicles.push(mkVeh('tank',x,y,a?Math.PI/2:0,rint(0,2))); nt++; }
   }
   let tries=0;
   while(vehicles.length<wantT+34&&tries++<800){
@@ -514,8 +523,9 @@ function genWorld(){
     else { y=roadY[rint(0,roadY.length-1)]+(Math.random()<.5?-1:1)*34; x=rnd(100,WORLD-100); a=Math.random()<.5?0:Math.PI; }
     if(dist(x,y,SX,SY)<160) continue;
     let ok=true; for(const v of vehicles) if(dist(v.x,v.y,x,y)<120){ok=false;break;}
-    if(ok&&isFree(x,y,34)) vehicles.push(mkVeh('car',x,y,a));
+    if(ok&&isFree(x,y,34)) vehicles.push(mkVeh('car',x,y,a,Math.random()<.35?1:0));
   }
+  pools=[]; if(TH.id==='lava') for(let i=0;i<55;i++){ const x=rnd(100,WORLD-100),y=rnd(100,WORLD-100); if(onRoad(x,y,60)||dist(x,y,SX,SY)<350) continue; let bad=false; for(const h of houses) if(x>h.x-70&&x<h.x+h.w+70&&y>h.y-70&&y<h.y+h.h+70){bad=true;break;} if(!bad) pools.push({x,y,r:rnd(40,95)}); }
   grass=(grassC[TH.id]=grassC[TH.id]||makeGrass());
 }
 function makeGrass(){
@@ -530,19 +540,16 @@ function makeGrass(){
 
 /* ================= اللاعب والعناصر ================= */
 function buildQueue(g){
-  const lvl=g%STAGE_LEVELS;
-  const tanks=g>=4?Math.min(1+((g-4)>>2)+(lvl===4&&g>4?1:0),4):0;
-  const snipers=g>=3?Math.min(1+(g>>2),4):0;
-  const heavies=g>=2?Math.min(1+(g>>1),7):0;
-  const runners=g>=1?Math.min(3+g,10):0;
-  const q=[];
-  for(let i=0;i<tanks;i++) q.push('tank');
-  for(let i=0;i<snipers;i++) q.push('sniper');
-  for(let i=0;i<heavies;i++) q.push('heavy');
-  for(let i=0;i<runners;i++) q.push('runner');
+  PER_LEVEL=50+g*2;
+  const h=Math.min(g>>2,3), l=Math.min(1+(g&1),4-h), sn=Math.min(1+(g>>1),9), hv=Math.min(1+g,12), rn=Math.min(4+g,18), q=[];
+  for(let i=0;i<4;i++) q.push(i<h?'tankH':i<h+l?'tankL':'tank');
+  for(let i=0;i<sn;i++) q.push('sniper');
+  for(let i=0;i<hv;i++) q.push('heavy');
+  for(let i=0;i<rn;i++) q.push('runner');
   while(q.length<PER_LEVEL) q.push('rifle');
   q.length=PER_LEVEL;
   for(let i=q.length-1;i>0;i--){ const j=rint(0,i); [q[i],q[j]]=[q[j],q[i]]; }
+  if(g===TOTAL-1) q.unshift('boss');
   return q;
 }
 function newGame(g){
@@ -551,8 +558,8 @@ function newGame(g){
   pl={x:SX,y:SY,a:-Math.PI/2,aimA:-Math.PI/2,hp:100,armor:0,cur:2,cd:0,reload:0,flash:0,veh:null,r:14,gren:4,gcd:0,house:null,hurt:0,
       w:WP.map(d=>({mag:d.mag,res:d.res})),px:0,py:0,vxs:0,vys:0,noAmmoT:0,hurtSnd:0,mvx:0,mvy:0};
   enemies=[];bullets=[];grenades=[];parts=[];texts=[];pickups=[];pending=[];msgs=[];
-  wave=1+g*.75; waveState='break'; waveTimer=2.5; queue=buildQueue(g); spawnT=0; score=0;kills=0;combo=0;comboT=0;lvTime=0;allyDown=0;strag=0;
-  allies=[mkAlly(0,'ياسر'),mkAlly(1,'عمر')];
+  wave=1+g; waveState='break'; waveTimer=2.5; queue=buildQueue(g); spawnT=0; score=0;kills=0;combo=0;comboT=0;lvTime=0;allyDown=0;strag=0;
+  spawnArmy(g); spawnCaps(g); sonFree=false; sonMsg=false;
   cam.x=pl.x;cam.y=pl.y;cam.shake=0;
   wx=[]; lightT=rnd(3,7); flashL=0;
   for(let i=0;i<80;i++){
@@ -600,8 +607,8 @@ function hurtPlayer(d){
 function damageEnemy(e,d,ang){
   if(e.dead) return;
   e.hp-=d; e.flash=.08;
-  blood(e.x,e.y,e.type==='tank'?0:4,ang);
-  if(e.type==='tank') { sparks(e.x,e.y,4); sfx('metal',e.x,e.y); } else sfx('hit',e.x,e.y);
+  blood(e.x,e.y,e.type[0]==='t'?0:4,ang);
+  if(e.type[0]==='t') { sparks(e.x,e.y,4); sfx('metal',e.x,e.y); } else sfx('hit',e.x,e.y);
   addText(e.x+rnd(-10,10),e.y-e.r-8,Math.round(d),'#ffe27a');
   if(e.hp<=0) killEnemy(e);
 }
@@ -610,7 +617,7 @@ function killEnemy(e){
   combo=comboT>0?Math.min(combo+1,5):1; comboT=3;
   const T=ET[e.type]; const pts=T.score*combo; score+=pts;
   addText(e.x,e.y-20,'+'+pts,'#7dff7d');
-  if(e.type==='tank'){
+  if(e.type[0]==='t'){
     pending.push({t:.02,x:e.x,y:e.y,R:150,dmg:110,own:'w'});
     wrecks.push({x:e.x,y:e.y,a:e.a,ta:e.ta,type:'tank'});
     pickups.push({x:e.x+30,y:e.y,t:'hp'},{x:e.x-30,y:e.y,t:'ammo'});
@@ -637,6 +644,7 @@ function damageVehicle(v,d){
 }
 function destroyVehicle(v){
   if(v.dead) return; v.dead=true;
+  if(v.crew){ v.crew.drv=null; placeNear(v.crew); msg('نزل '+v.crew.name+' من المركبة المدمّرة'); }
   if(v.occ){ ejectPlayer(v); hurtPlayerDirect(30); }
   pending.push({t:.02,x:v.x,y:v.y,R:v.type==='tank'?170:140,dmg:v.type==='tank'?140:110,own:'w'});
   wrecks.push({x:v.x,y:v.y,a:v.a,ta:v.ta,type:v.type});
@@ -656,13 +664,13 @@ function explode(x,y,R,dmg,own){
     if(e.dead) continue;
     if(own==='e') continue;
     const d=dist(x,y,e.x,e.y);
-    if(d<R+e.r){ const f=1-d/(R+e.r); damageEnemy(e,dmg*f*(e.type==='tank'?.75:1),Math.atan2(e.y-y,e.x-x)); const a=Math.atan2(e.y-y,e.x-x); if(e.type!=='tank'){e.x+=Math.cos(a)*30*f;e.y+=Math.sin(a)*30*f;} }
+    if(d<R+e.r){ const f=1-d/(R+e.r); damageEnemy(e,dmg*f*(e.type[0]==='t'?.75:1),Math.atan2(e.y-y,e.x-x)); const a=Math.atan2(e.y-y,e.x-x); if(e.type[0]!=='t'){e.x+=Math.cos(a)*30*f;e.y+=Math.sin(a)*30*f;} }
   }
-  for(const a of allies){ if(a.dead) continue; const d=dist(x,y,a.x,a.y); if(d<R+a.r){ const f=1-d/(R+a.r); hurtAlly(a,dmg*f*(own==='p'?.25:1)); } }
+  for(const a of allies){ if(a.dead||a.drv) continue; const d=dist(x,y,a.x,a.y); if(d<R+a.r){ const f=1-d/(R+a.r); hurtAlly(a,dmg*f*(own==='p'?.25:1)); } }
   const dpl=dist(x,y,pl.x,pl.y);
   if(dpl<R+pl.r){ const f=1-dpl/(R+pl.r); hurtPlayer(dmg*f*(own==='p'?.35:1)); }
   for(const v of vehicles){
-    if(v.dead||v.occ) continue;
+    if(v.dead||v.occ||(v.ai&&own==='p')) continue;
     const d=dist(x,y,v.x,v.y);
     if(d<R+v.r) damageVehicle(v,dmg*(1-d/(R+v.r))*1.3);
   }
@@ -683,21 +691,21 @@ function spawnBullet(x,y,ang,spd,dmg,life,own,kind,rad,edmg){
   bullets.push({x,y,px:x,py:y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,dmg,life,own,kind,rad:rad||0,edmg:edmg||0,hit:kind===3?[]:null});
 }
 function startReload(){
-  if(pl.veh&&pl.veh.type==='tank') return;
+  if(pl.veh) return;
   const d=WP[pl.cur], w=pl.w[pl.cur];
   if(pl.reload>0||w.mag>=d.mag||w.res<=0) return;
   pl.reload=d.reload; sfx('reload1');
 }
 function selectWeapon(i){
-  if(i<0||i>5||pl.cur===i) return; if(pl.veh&&pl.veh.type==='tank') return;
+  if(i<0||i>5||pl.cur===i) return; if(pl.veh) return;
   pl.cur=i; pl.reload=0; pl.cd=.15; sfx('pin');
 }
 function playerFire(){
   const v=pl.veh;
-  if(v&&v.type==='tank'){
-    if(v.mcd>0) return; v.mcd=.09;
-    const a=v.ta+rnd(-.04,.04), mx=v.x+Math.cos(v.ta)*60, my=v.y+Math.sin(v.ta)*60;
-    spawnBullet(mx,my,a,1100,16,.9,'p',0); pl.flash=.05; sfx('rifle',v.x,v.y,.8);
+  if(v){ const V=VK[v.type][v.k];
+    if(v.mcd>0) return; v.mcd=V.rt;
+    const L=v.type==='tank'?60:32, a=v.ta+rnd(-.05,.05), mx=v.x+Math.cos(v.ta)*L, my=v.y+Math.sin(v.ta)*L;
+    spawnBullet(mx,my,a,1100,V.dm,.9,'p',0); pl.flash=.05; sfx('rifle',v.x,v.y,.8);
     part(mx,my,0,0,.05,12,'#ffe9a0','flash');
     return;
   }
@@ -722,9 +730,9 @@ function playerFire(){
 }
 function tankCannon(){
   const v=pl.veh; if(!v||v.type!=='tank'||v.cd>0) return;
-  v.cd=1.1;
+  const V=VK.tank[v.k]; v.cd=V.cd;
   const mx=v.x+Math.cos(v.ta)*70, my=v.y+Math.sin(v.ta)*70;
-  spawnBullet(mx,my,v.ta,820,0,1.6,'p',2,135,180);
+  spawnBullet(mx,my,v.ta,820,0,1.6,'p',2,V.rad,V.ed);
   sfx('cannon',v.x,v.y,1.1); cam.shake=Math.max(cam.shake,10);
   v.speed-=Math.cos(angDiff(v.a,v.ta))*40;
   for(let i=0;i<8;i++) part(mx,my,Math.cos(v.ta)*rnd(50,200)+rnd(-40,40),Math.sin(v.ta)*rnd(50,200)+rnd(-40,40),rnd(.3,.7),rnd(8,16),'#999','smoke');
@@ -740,11 +748,11 @@ function throwGren(){
 function toggleVehicle(){
   if(pl.veh){ ejectPlayer(pl.veh); return; }
   let best=null,bd=100;
-  for(const v of vehicles){ if(v.dead||v.occ) continue; const d=dist(v.x,v.y,pl.x,pl.y); if(d<bd){bd=d;best=v;} }
+  for(const v of vehicles){ if(v.dead||v.occ||v.ai) continue; const d=dist(v.x,v.y,pl.x,pl.y); if(d<bd){bd=d;best=v;} }
   if(!best){ msg('لا توجد مركبة قريبة'); return; }
   pl.veh=best; best.occ=true; pl.r=best.r; pl.reload=0; sfx('door'); initAudio(); engineOn(best.type);
-  if(best.type==='tank'){ allies.forEach(a=>{ if(!a.dead) a.rd=best; }); }
-  msg(best.type==='tank'?'دبابة: الماوس للتصويب، الإطلاق = رشاش، G = مدفع':'سيارة: ادهس الأعداء!');
+  { let sn=best.type==='tank'?2:1; for(const a of allies){ if(sn>0&&!a.dead&&!a.drv&&!a.rd){ a.rd=best; a.seat=sn&1; sn--; } } }
+  msg(VK[best.type][best.k].n+': الماوس للتصويب، الإطلاق = رشاش'+(best.type==='tank'?'، G = مدفع':' + ادهس الأعداء'));
 }
 function ejectPlayer(v){
   v.occ=false; pl.veh=null; pl.r=14; engineOff();
@@ -758,7 +766,7 @@ function ejectPlayer(v){
 }
 function updateVehicle(v,dt,inp){
   const tank=v.type==='tank';
-  const maxS=tank?170:430, accel=tank?1.6:2.4, turn=tank?1.7:2.9;
+  const maxS=VK[v.type][v.k].s, accel=tank?1.6:2.4, turn=tank?1.7:2.9;
   const m=Math.hypot(inp.mx,inp.my);
   if(m>.12){
     const target=Math.atan2(inp.my,inp.mx), da=angDiff(v.a,target);
@@ -775,16 +783,16 @@ function updateVehicle(v,dt,inp){
   // دهس الأعداء
   if(Math.abs(v.speed)>110){
     for(const e of enemies){
-      if(e.dead||e.type==='tank') continue;
+      if(e.dead||e.type[0]==='t') continue;
       if(dist(v.x,v.y,e.x,e.y)<v.r+e.r){ damageEnemy(e,Math.abs(v.speed)*(tank?1.4:.7),v.a); blood(e.x,e.y,10,v.a); }
     }
   }
   // دهس السيارات الأخرى بالدبابة
   if(tank&&Math.abs(v.speed)>80){
-    for(const o of vehicles){ if(o===v||o.dead||o.occ||o.type!=='car') continue; if(dist(v.x,v.y,o.x,o.y)<v.r+o.r) damageVehicle(o,200); }
+    for(const o of vehicles){ if(o===v||o.dead||o.occ||o.ai||o.type!=='car') continue; if(dist(v.x,v.y,o.x,o.y)<v.r+o.r) damageVehicle(o,200); }
   }
   // برج الدبابة
-  if(tank){ v.ta+=clamp(angDiff(v.ta,pl.aimA),-4*dt,4*dt); } else v.ta=v.a;
+  { const ts=tank?4:7; v.ta+=clamp(angDiff(v.ta,pl.aimA),-ts*dt,ts*dt); }
   v.cd=Math.max(0,v.cd-dt); v.mcd=Math.max(0,v.mcd-dt);
   if(v.hp<v.max*.4&&Math.random()<dt*14) part(v.x+rnd(-12,12),v.y+rnd(-12,12),rnd(-15,15),rnd(-30,-10),rnd(.6,1.1),rnd(8,16),v.hp<v.max*.2?'#222':'#555','smoke');
   if(v.hp<v.max*.2&&Math.random()<dt*20) part(v.x+rnd(-12,12),v.y+rnd(-12,12),rnd(-20,20),rnd(-40,-10),rnd(.2,.4),rnd(6,12),'#ff8a1f','fire');
@@ -901,8 +909,8 @@ function startLevel(g){
   newGame(g); state='play'; showScreen(null);
   if(ac) ac.resume();
   msg(TH.name+' — المستوى '+(g%STAGE_LEVELS+1),true);
-  msg('اقضِ على '+PER_LEVEL+' عدواً مع رفيقيك');
-  if(queue.indexOf('tank')>=0) msg('تحذير: دبابات معادية!');
+  msg(STORY[Math.floor(g/STAGE_LEVELS)]);
+  msg('اقضِ على '+PER_LEVEL+' عدواً وحرّر الأسرى ('+caps.length+')');
 }
 function gameOver(){
   if(state!=='play') return; state='over'; engineOff();
@@ -920,10 +928,10 @@ function levelWin(){
   if(last) P.done=true; else P.unlocked=Math.max(P.unlocked,lvIdx+1);
   profile.stats.kills+=kills; profile.stats.wins++; profile.stats.games++; profile.stats.score+=score;
   saveProfile(true);
-  $('winTit').textContent=last?'🏆 أنهيت اللعبة بالكامل!':'✔ اكتمل المستوى';
+  $('winTit').textContent=last?'🏆 أنقذتَ ابنك وسقطت المافيا!':'✔ اكتمل المستوى';
   $('winStars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
   $('winTxt').innerHTML=TH.name+' — المستوى '+(lvIdx%STAGE_LEVELS+1)+'<br>القتلى: '+kills+' • الوقت: '+t+' ث • النتيجة: '+score+' (مكافأة +'+bonus+')'+(last?'':'<br><span style="color:#8aff9a">تم فتح المستوى التالي</span>');
-  $('wNext').classList.toggle('hidden',last);
+  $('winTxt').innerHTML+='<br>الأسرى المنقَذون: '+capFreed+'/'+caps.length+' • جيشك: '+allies.length+' مقاتل'+(last?'<br><b style="color:#ffd54a">ضممتُ ابني إلى صدري… وانتهى حكم المافيا للأبد 💙</b>':''); $('wNext').classList.toggle('hidden',last);
   showScreen('winS');
 }
 
@@ -957,10 +965,10 @@ function updatePlayer(dt){
   pl.cd=Math.max(0,pl.cd-dt); pl.gcd=Math.max(0,pl.gcd-dt); pl.flash=Math.max(0,pl.flash-dt);
   pl.hurt=Math.max(0,pl.hurt-dt*.9); pl.hurtSnd=Math.max(0,pl.hurtSnd-dt); pl.noAmmoT=Math.max(0,pl.noAmmoT-dt);
   if(act.pause){ act.pause=false; setPause(true); return; }
-  if(act.next){ act.next=false; if(!(pl.veh&&pl.veh.type==='tank')){ const d=act.dir||1; act.dir=1; let n=pl.cur; for(let i=0;i<6;i++){ n=(n+d+6)%6; if(pl.w[n].mag+pl.w[n].res>0||i===5) break; } selectWeapon(n); } }
+  if(act.next){ act.next=false; if(!(pl.veh)){ const d=act.dir||1; act.dir=1; let n=pl.cur; for(let i=0;i<6;i++){ n=(n+d+6)%6; if(pl.w[n].mag+pl.w[n].res>0||i===5) break; } selectWeapon(n); } }
   if(act.reload){ act.reload=false; startReload(); }
   if(act.enter){ act.enter=false; toggleVehicle(); }
-  if(act.alt){ act.alt=false; if(pl.veh&&pl.veh.type==='tank') tankCannon(); else throwGren(); }
+  if(act.alt){ act.alt=false; if(pl.veh) tankCannon(); else throwGren(); }
   if(pl.reload>0){ pl.reload-=dt; if(pl.reload<=0){ const d=WP[pl.cur],w=pl.w[pl.cur]; const need=d.mag-w.mag,take=Math.min(need,w.res); w.mag+=take; w.res-=take; pl.reload=0; sfx('reload2'); } }
   const ox=pl.x,oy=pl.y;
   if(pl.veh){
@@ -975,7 +983,8 @@ function updatePlayer(dt){
   pl.px=(pl.x-ox)/dt; pl.py=(pl.y-oy)/dt;
   pl.house=houseAt(pl.x,pl.y);
   if(input.fire) playerFire();
-  if(pl.veh&&pl.veh.type==='tank'&&false){}
+  if(pl.veh&&false){}
+  if(pools.length&&!pl.veh) for(const p of pools) if(dist(p.x,p.y,pl.x,pl.y)<p.r*.9){ hurtPlayer(22*dt); break; }
   // قطع الأرض: التقاط الأغراض
   for(let i=pickups.length-1;i>=0;i--){
     const p=pickups[i];
@@ -1002,7 +1011,7 @@ function enemyFire(e,ang){
 }
 function updEnemy(e,dt){
   const T=ET[e.type];
-  if(e.type==='tank') return updTank(e,dt,T);
+  if(e.type[0]==='t') return updTank(e,dt,T);
   e.tgT-=dt; if(e.tgT<=0||!e.tg||e.tg.dead){ e.tgT=.35; pickTarget(e); }
   const P=e.tg, dx=P.x-e.x, dy=P.y-e.y, d=Math.hypot(dx,dy), ds=1+wave*.05;
   e.flash=Math.max(0,e.flash-dt); e.flash2=Math.max(0,(e.flash2||0)-dt);
@@ -1047,7 +1056,7 @@ function updEnemy(e,dt){
         e.burst--; e.bt=T.w==='rifle'?.11:.1;
         if(e.burst<=0) e.cd=T.w==='sniper'?rnd(2.4,3.2):T.w==='shotgun'?rnd(1.3,1.9):rnd(.9,1.6);
       }
-    } else if(e.cd<=0){ e.burst=T.w==='rifle'?3:1; e.bt=T.w==='sniper'?.9:T.w==='shotgun'?.35:.25; }
+    } else if(e.cd<=0){ e.burst=T.w==='rifle'?(T.bu||3):1; e.bt=T.w==='sniper'?.9:T.w==='shotgun'?.35:.25; }
   } else if(e.burst>0&&!e.los){ e.burst=0; e.cd=.4; }
 }
 function updTank(e,dt,T){
@@ -1063,14 +1072,14 @@ function updTank(e,dt,T){
   const da=angDiff(e.a,ang); e.a+=clamp(da,-1.1*dt,1.1*dt);
   if(wantMove||e.stuck>0){ const f=Math.max(.2,Math.cos(da)); e.x+=Math.cos(e.a)*T.spd*f*dt; e.y+=Math.sin(e.a)*T.spd*f*dt; }
   collideCircle(e,e.r);
-  for(const o of enemies){ if(o===e||o.dead) continue; const ddx=e.x-o.x,ddy=e.y-o.y,dd=Math.hypot(ddx,ddy),mn=e.r+o.r; if(dd<mn&&dd>.01&&o.type!=='tank'){ /* يدهس الجنود */ } else if(dd<mn&&dd>.01){ e.x+=ddx/dd*(mn-dd)*.5; e.y+=ddy/dd*(mn-dd)*.5; } }
+  for(const o of enemies){ if(o===e||o.dead) continue; const ddx=e.x-o.x,ddy=e.y-o.y,dd=Math.hypot(ddx,ddy),mn=e.r+o.r; if(dd<mn&&dd>.01&&o.type[0]!=='t'){ /* يدهس الجنود */ } else if(dd<mn&&dd>.01){ e.x+=ddx/dd*(mn-dd)*.5; e.y+=ddy/dd*(mn-dd)*.5; } }
   const tAng=Math.atan2(dy,dx);
   e.ta+=clamp(angDiff(e.ta,tAng),-2*dt,2*dt);
   e.cd-=dt; e.mcd-=dt;
   const aligned=Math.abs(angDiff(e.ta,tAng));
   if(e.los&&d<T.range*1.1&&aligned<.1&&e.cd<=0){
-    e.cd=rnd(3,4);
-    spawnBullet(e.x+Math.cos(e.ta)*66,e.y+Math.sin(e.ta)*66,e.ta,600,0,2.2,'e',2,110,60*ds);
+    e.cd=T.cd?rnd(T.cd,T.cd+1):rnd(3,4);
+    spawnBullet(e.x+Math.cos(e.ta)*66,e.y+Math.sin(e.ta)*66,e.ta,600,0,2.2,'e',2,T.rad||110,(T.sd||60)*ds);
     sfx('cannon',e.x,e.y,1); part(e.x+Math.cos(e.ta)*70,e.y+Math.sin(e.ta)*70,0,0,.08,24,'#ffd37a','flash');
   }
   if(e.los&&d<520&&aligned<.2&&e.mcd<=0){
@@ -1083,12 +1092,12 @@ function updTank(e,dt,T){
 function spawnEnemy(type){
   for(let tr=0;tr<40;tr++){
     let x,y,inH=false;
-    if(type!=='tank'&&type!=='runner'&&houses.length&&Math.random()<.28){
+    if(type[0]!=='t'&&type!=='runner'&&houses.length&&Math.random()<.28){
       const cand=houses.filter(h=>{const d=dist(h.x+h.w/2,h.y+h.h/2,pl.x,pl.y);return d>420&&d<1500;});
       if(cand.length){ const h=cand[rint(0,cand.length-1)]; x=rnd(h.x+26,h.x+h.w-26); y=rnd(h.y+26,h.y+h.h-26); inH=true; }
     }
     if(!inH){ const a=rnd(0,TAU),d=rnd(750,1250); x=pl.x+Math.cos(a)*d; y=pl.y+Math.sin(a)*d; }
-    const R=type==='tank'?50:20;
+    const R=type[0]==='t'?ET[type].r+6:20;
     if(!isFree(x,y,R)) continue;
     if(dist(x,y,pl.x,pl.y)<(inH?420:700)) continue;
     const T=ET[type], hp=T.hp*(1+wave*.03);
@@ -1101,9 +1110,9 @@ function updateLevel(dt){
   lvTime+=dt;
   if(waveState==='break'){ waveTimer-=dt; if(waveTimer<=0){ waveState='fight'; sfx('alert'); } return; }
   const alive=enemies.length; spawnT-=dt;
-  const cap=Math.min(10+Math.floor(lvIdx/2)+(lvIdx>9?2:0),18);
-  if(queue.length&&spawnT<=0&&alive<cap){ spawnT=.7; const t=queue.pop(); if(!spawnEnemy(t)) queue.push(t); }
-  if(!queue.length&&alive===0) levelWin();
+  const cap=Math.min(14+Math.floor(lvIdx*.6),28);
+  if(queue.length&&spawnT<=0&&alive<cap){ spawnT=.55; const t=queue.pop(); if(!spawnEnemy(t)) queue.push(t); else if(t==='boss') msg('⚠ زعيم المافيا يظهر!',true); }
+  if(!queue.length&&alive===0){ if(lvIdx===TOTAL-1&&!sonFree){ if(!sonMsg){ sonMsg=true; msg('سقطت العصابة! اذهب وأنقذ ابنك 💙',true); } } else levelWin(); }
   if(!queue.length&&alive>0&&alive<=2){
     strag+=dt;
     if(strag>40){ strag=0; for(const e of enemies) if(!e.dead) relocate(e); msg('الأعداء المتبقون يقتربون منك!'); }
@@ -1112,7 +1121,7 @@ function updateLevel(dt){
 function relocate(e){
   for(let t=0;t<40;t++){
     const a=rnd(0,TAU), d=rnd(600,850), x=pl.x+Math.cos(a)*d, y=pl.y+Math.sin(a)*d;
-    if(isFree(x,y,e.type==='tank'?50:20)){ e.x=x; e.y=y; e.lx=x; e.ly=y; e.stuck=0; return; }
+    if(isFree(x,y,e.type[0]==='t'?50:20)){ e.x=x; e.y=y; e.lx=x; e.ly=y; e.stuck=0; return; }
   }
 }
 
@@ -1144,11 +1153,11 @@ function updBullets(dt){
         consumed=true; ex=pl.x; ey=pl.y;
         if(b.kind===2||b.kind===1){} else { hurtPlayer(b.dmg); if(!pl.veh){ blood(pl.x,pl.y,4,ang); } else sparks(pl.x,pl.y,4); }
       }
-      if(!consumed) for(const a of allies){ if(a.dead) continue; if(segDist(b.x,b.y,nx,ny,a.x,a.y)<a.r+2){ consumed=true; ex=a.x; ey=a.y; if(b.kind!==1&&b.kind!==2){ hurtAlly(a,b.dmg); blood(a.x,a.y,3,ang); } break; } }
+      if(!consumed) for(const a of allies){ if(a.dead||a.drv) continue; if(segDist(b.x,b.y,nx,ny,a.x,a.y)<a.r+2){ consumed=true; ex=a.x; ey=a.y; if(b.kind!==1&&b.kind!==2){ hurtAlly(a,b.dmg); blood(a.x,a.y,3,ang); } break; } }
     }
     if(!consumed){
       for(const v of vehicles){
-        if(v.dead||v.occ) continue;
+        if(v.dead||v.occ||(v.ai&&b.own==='p')) continue;
         if(segDist(b.x,b.y,nx,ny,v.x,v.y)<v.r){
           consumed=true; ex=v.x; ey=v.y;
           if(b.kind!==1&&b.kind!==2){ damageVehicle(v,b.dmg); sparks(nx,ny,5,ang+Math.PI); }
@@ -1209,7 +1218,7 @@ function update(dt){
   if(state!=='play') return;
   for(const e of enemies) updEnemy(e,dt);
   for(let i=enemies.length-1;i>=0;i--) if(enemies[i].dead) enemies.splice(i,1);
-  updAllies(dt); updBullets(dt); updGrenades(dt); updParts(dt); updWeather(dt);
+  updAllies(dt); updCaps(dt); for(const v of vehicles) if(v.ai&&!v.dead) updAiVeh(v,dt); updBullets(dt); updGrenades(dt); updParts(dt); updWeather(dt);
   updateLevel(dt);
   const look=(pl.cur===4&&!pl.veh)?240:100, lx=pl.x+Math.cos(pl.aimA)*look, ly=pl.y+Math.sin(pl.aimA)*look;
   const k=1-Math.exp(-dt*6); cam.x+=(lx-cam.x)*k; cam.y+=(ly-cam.y)*k;
@@ -1217,10 +1226,10 @@ function update(dt){
   // تحديث خانات الأسلحة
   for(let i=0;i<slotEls.length;i++){
     const w=pl.w[i];
-    slotEls[i].classList.toggle('on',i===pl.cur&&!(pl.veh&&pl.veh.type==='tank'));
+    slotEls[i].classList.toggle('on',i===pl.cur&&!(pl.veh));
     slotEls[i].classList.toggle('empty',w.mag+w.res<=0);
   }
-  let near=false; if(!pl.veh) for(const v of vehicles){ if(!v.dead&&!v.occ&&dist(v.x,v.y,pl.x,pl.y)<100){near=true;break;} }
+  let near=false; if(!pl.veh) for(const v of vehicles){ if(!v.dead&&!v.occ&&!v.ai&&dist(v.x,v.y,pl.x,pl.y)<100){near=true;break;} }
   $('bVeh').classList.toggle('glow',near||!!pl.veh);
   $('vehLbl').textContent=pl.veh?'نزول':'ركوب';
 }
@@ -1257,7 +1266,7 @@ function drawCar(v){
   ctx.fillStyle='#16222a'; rr(-27,-12,5,24,2); ctx.fill();
   ctx.fillStyle='#ffe58a'; ctx.beginPath(); ctx.arc(33,-11,3.2,0,TAU); ctx.arc(33,11,3.2,0,TAU); ctx.fill();
   ctx.fillStyle='#c22'; ctx.fillRect(-35,-14,3,7); ctx.fillRect(-35,7,3,7);
-  ctx.restore();
+  ctx.restore(); ctx.save(); ctx.translate(v.x,v.y); ctx.rotate(v.ta); ctx.fillStyle='#222'; ctx.fillRect(2,-2.5,v.k?32:24,5); ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(0,0,7,0,TAU); ctx.fill(); ctx.restore();
 }
 function drawTankBody(x,y,a,ta,col,fl,hurtWhite){
   ctx.save(); ctx.translate(x,y); ctx.rotate(a);
@@ -1356,10 +1365,14 @@ function render(){
   for(const h of houses) if(vis(h.x+h.w/2,h.y+h.h/2,Math.max(h.w,h.h))) drawHouseFloor(h);
   // آثار
   for(const d of decals){ if(!vis(d.x,d.y,d.r)) continue; ctx.fillStyle=d.c; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,TAU); ctx.fill(); }
+  for(const p of pools) if(vis(p.x,p.y,p.r+20)){ const k=.75+.25*Math.sin(time*3+p.x); ctx.fillStyle='#5a1500'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+8,0,TAU); ctx.fill(); ctx.fillStyle='rgb(255,'+Math.floor(90+70*k)+',20)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,TAU); ctx.fill(); }
   for(const w of wrecks) if(vis(w.x,w.y,60)) drawWreck(w);
   // الجدران والصناديق
   for(const s of solids) if(!s.dead&&vis(s.x+s.w/2,s.y+s.h/2,Math.max(s.w,s.h)+10)) drawSolid(s);
   for(const p of pickups) if(vis(p.x,p.y,20)) drawPickup(p);
+  for(const c of caps){ if(c.done||!vis(c.x,c.y,50)) continue; drawMan(c.x,c.y,Math.PI/2,c.son?'#e8c33a':'#d8832a','#8a5a2a',0,0,false);
+    ctx.strokeStyle='#bbb'; ctx.lineWidth=2; ctx.strokeRect(c.x-20,c.y-22,40,44); for(let i=-12;i<=12;i+=8){ ctx.beginPath(); ctx.moveTo(c.x+i,c.y-22); ctx.lineTo(c.x+i,c.y+22); ctx.stroke(); }
+    if(c.p>0){ ctx.strokeStyle='#7dff7d'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(c.x,c.y,32,-Math.PI/2,-Math.PI/2+TAU*c.p); ctx.stroke(); } }
   // خط تصويب القناص / تحذير القناصة
   if(!pl.veh&&pl.cur===4){
     let lx=pl.x,ly=pl.y; for(let d=30;d<900;d+=20){ const px=pl.x+Math.cos(pl.a)*d,py=pl.y+Math.sin(pl.a)*d; if(pointSolid(px,py)) break; lx=px;ly=py; }
@@ -1372,20 +1385,21 @@ function render(){
   // المركبات
   for(const v of vehicles){
     if(v.dead||!vis(v.x,v.y,70)) continue;
-    if(v.type==='car') drawCar(v); else drawTankBody(v.x,v.y,v.a,v.ta,v.col,v.fl,v.fl>0);
+    if(v.type==='car') drawCar(v); else { const sc=VK.tank[v.k].sc; ctx.save(); ctx.translate(v.x,v.y); ctx.scale(sc,sc); ctx.translate(-v.x,-v.y); drawTankBody(v.x,v.y,v.a,v.ta,v.col,v.fl,v.fl>0); ctx.restore(); }
+    if(v.ai){ ctx.strokeStyle='#41d08a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(v.x,v.y,v.r+7,0,TAU); ctx.stroke(); ctx.font='bold 11px Tahoma,Arial'; ctx.textAlign='center'; ctx.fillStyle='#8dffc0'; ctx.fillText(v.crew.name,v.x,v.y-v.r-16); }
     if(!v.occ&&v.hp<v.max){ ctx.fillStyle='#000a'; ctx.fillRect(v.x-22,v.y-v.r-12,44,5); ctx.fillStyle=v.hp>v.max*.4?'#5c5':'#e44'; ctx.fillRect(v.x-21,v.y-v.r-11,42*clamp(v.hp/v.max,0,1),3); }
   }
   // الأعداء
   for(const e of enemies){
     if(e.dead||!vis(e.x,e.y,70)) continue;
     const T=ET[e.type], ec=TH.ec&&TH.ec[e.type];
-    if(e.type==='tank') drawTankBody(e.x,e.y,e.a,e.ta,ec?ec[0]:T.col,0,e.flash>0);
+    if(e.type[0]==='t') {ctx.save();ctx.translate(e.x,e.y);ctx.scale(T.sc||1,T.sc||1);ctx.translate(-e.x,-e.y);drawTankBody(e.x,e.y,e.a,e.ta,ec?ec[0]:T.col,0,e.flash>0);ctx.restore();}
     else drawMan(e.x,e.y,e.a,ec?ec[0]:T.col,ec?ec[1]:T.hel,T.glen,e.flash2,e.flash>0);
-    if(e.hp<e.max){ const w=e.type==='tank'?60:30; ctx.fillStyle='#000a'; ctx.fillRect(e.x-w/2,e.y-e.r-12,w,5); ctx.fillStyle='#e33'; ctx.fillRect(e.x-w/2+1,e.y-e.r-11,(w-2)*clamp(e.hp/e.max,0,1),3); }
+    if(e.hp<e.max){ const w=e.type[0]==='t'?60:30; ctx.fillStyle='#000a'; ctx.fillRect(e.x-w/2,e.y-e.r-12,w,5); ctx.fillStyle='#e33'; ctx.fillRect(e.x-w/2+1,e.y-e.r-11,(w-2)*clamp(e.hp/e.max,0,1),3); }
   }
   for(const a of allies){
-    if(a.dead||!vis(a.x,a.y,60)) continue;
-    if(a.rd&&!a.i){ ctx.save(); ctx.translate(a.x,a.y); ctx.rotate(a.a); ctx.fillStyle='#111'; ctx.fillRect(8,-3,36,6); ctx.fillStyle='#444'; ctx.fillRect(2,-7,10,14); ctx.restore(); }
+    if(a.dead||a.drv||!vis(a.x,a.y,60)) continue;
+    if(a.rd&&!a.seat){ ctx.save(); ctx.translate(a.x,a.y); ctx.rotate(a.a); ctx.fillStyle='#111'; ctx.fillRect(8,-3,36,6); ctx.fillStyle='#444'; ctx.fillRect(2,-7,10,14); ctx.restore(); }
     drawMan(a.x,a.y,a.a,'#2f8f6a','#1f6a4c',26,a.flash2,a.flash>0);
     ctx.font='bold 11px Tahoma,Arial'; ctx.textAlign='center'; ctx.fillStyle='#000'; ctx.fillText(a.name,a.x+1,a.y-a.r-15); ctx.fillStyle='#8dffc0'; ctx.fillText(a.name,a.x,a.y-a.r-16);
     ctx.fillStyle='#000a'; ctx.fillRect(a.x-15,a.y-a.r-12,30,4); ctx.fillStyle='#41d08a'; ctx.fillRect(a.x-14,a.y-a.r-11,28*clamp(a.hp/a.max,0,1),2);
@@ -1426,6 +1440,7 @@ function render(){
   // الأشجار والأسقف
   for(const t of trees) if(vis(t.x,t.y,60)) drawTree(t);
   for(const h of houses) if(vis(h.x+h.w/2,h.y+h.h/2,Math.max(h.w,h.h))) drawRoof(h);
+  for(const c of caps){ if(c.done||!vis(c.x,c.y,50)) continue; ctx.font='bold 13px Tahoma,Arial'; ctx.textAlign='center'; ctx.fillStyle='#000'; ctx.fillText(c.son?'ابني!':'أسير',c.x+1,c.y-33+Math.sin(time*5)*2); ctx.fillStyle=c.son?'#ff7ae6':'#ffe27a'; ctx.fillText(c.son?'ابني!':'أسير',c.x,c.y-34+Math.sin(time*5)*2); }
   // أرقام الضرر
   ctx.font='bold 15px Tahoma,Arial'; ctx.textAlign='center';
   for(const t of texts){ ctx.globalAlpha=clamp(t.life*2,0,1); ctx.fillStyle='#000'; ctx.fillText(t.t,t.x+1,t.y+1); ctx.fillStyle=t.col; ctx.fillText(t.t,t.x,t.y); }
@@ -1456,13 +1471,15 @@ function drawHUD(){
   const wt=waveState==='break'?(TH.name+' • المستوى '+lvn+' — يبدأ بعد '+Math.ceil(waveTimer)):(TH.name+' '+lvn+'/'+STAGE_LEVELS+' • الأعداء: '+left+'/'+PER_LEVEL);
   ctx.fillStyle='#000'; ctx.fillText(wt,W/2+1,padT+17); ctx.fillStyle='#fff'; ctx.fillText(wt,W/2,padT+16);
   ctx.font='bold 13px Tahoma,Arial'; ctx.fillStyle='#ffe27a'; ctx.fillText('النتيجة: '+score+(combo>1?'  ×'+combo:''),W/2,padT+34);
+  ctx.font='bold 12px Tahoma,Arial'; ctx.fillStyle='#8dffc0'; ctx.fillText('🪖 الجيش: '+allies.length+' • الأسرى: '+capFreed+'/'+caps.length+(lvIdx===TOTAL-1?' • ابني: '+(sonFree?'✔':'؟'):''),W/2,padT+50);
   // خريطة صغيرة
   const ms=Math.min(100,Math.min(W,H)*.26), mx=padL, my=padT+34, k=ms/WORLD;
   ctx.fillStyle='rgba(20,40,20,.7)'; ctx.fillRect(mx,my,ms,ms);
   ctx.fillStyle='#555'; for(const r of roadX) ctx.fillRect(mx+(r-ROAD/2)*k,my,ROAD*k,ms); for(const r of roadY) ctx.fillRect(mx,my+(r-ROAD/2)*k,ms,ROAD*k);
   ctx.fillStyle='#9a8a6a'; for(const h of houses) ctx.fillRect(mx+h.x*k,my+h.y*k,Math.max(2,h.w*k),Math.max(2,h.h*k));
   ctx.fillStyle='#4fa3ff'; for(const v of vehicles) if(!v.dead) ctx.fillRect(mx+v.x*k-1.5,my+v.y*k-1.5,3,3);
-  ctx.fillStyle='#ff3b3b'; for(const e of enemies) if(!e.dead){ const s=e.type==='tank'?4:2.5; ctx.fillRect(mx+e.x*k-s/2,my+e.y*k-s/2,s,s); }
+  ctx.fillStyle='#ff3b3b'; for(const e of enemies) if(!e.dead){ const s=e.type[0]==='t'?4:2.5; ctx.fillRect(mx+e.x*k-s/2,my+e.y*k-s/2,s,s); }
+  for(const c of caps) if(!c.done){ ctx.fillStyle=c.son?'#ff4fd8':'#ffd400'; ctx.fillRect(mx+c.x*k-2.5,my+c.y*k-2.5,5,5); }
   ctx.fillStyle='#41d08a'; for(const a of allies) if(!a.dead) ctx.fillRect(mx+a.x*k-2,my+a.y*k-2,4,4);
   ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(mx+pl.x*k,my+pl.y*k,3,0,TAU); ctx.fill();
   ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1; ctx.strokeRect(mx,my,ms,ms);
@@ -1470,7 +1487,7 @@ function drawHUD(){
   ctx.textAlign='left'; ctx.font='bold 13px Tahoma,Arial';
   const ax=padL, ay=my+ms+18;
   ctx.fillStyle='#000a'; ctx.fillRect(ax-2,ay-14,ms+4,38);
-  if(pl.veh&&pl.veh.type==='tank'){ ctx.fillStyle='#fff'; ctx.fillText('مدفع الدبابة',ax+2,ay); ctx.fillStyle=pl.veh.cd>0?'#f55':'#7f7'; ctx.fillText(pl.veh.cd>0?'تحميل...':'جاهز (G)',ax+2,ay+17); }
+  if(pl.veh){ const V=VK[pl.veh.type][pl.veh.k], tk=pl.veh.type==='tank'; ctx.fillStyle='#fff'; ctx.fillText(V.n,ax+2,ay); ctx.fillStyle=tk&&pl.veh.cd>0?'#f55':'#7f7'; ctx.fillText(tk?(pl.veh.cd>0?'تحميل...':'جاهز (G)'):'رشاش مثبّت',ax+2,ay+17); }
   else {
     const d=WP[pl.cur],w=pl.w[pl.cur];
     ctx.fillStyle='#fff'; ctx.fillText(d.n,ax+2,ay);
@@ -1480,7 +1497,7 @@ function drawHUD(){
     if(pl.reload>0){ ctx.fillStyle='#ffb84d'; ctx.fillRect(ax,ay+21,(ms)*(1-pl.reload/d.reload),2); }
   }
   ctx.textAlign='left'; ctx.font='bold 11px Tahoma,Arial';
-  allies.forEach((a,i)=>{ const y2=ay+36+i*18; ctx.fillStyle='#fff'; ctx.fillText((a.dead?'💀 ':'🛡 ')+a.name,ax+2,y2); bar(ax+56,y2-9,ms-52,8,a.dead?1-a.rt/12:a.hp/a.max,a.dead?'#888':'#41d08a'); });
+  allies.slice(0,3).forEach((a,i)=>{ const y2=ay+36+i*18; ctx.fillStyle='#fff'; ctx.fillText((a.dead?'💀 ':'🛡 ')+a.name,ax+2,y2); bar(ax+56,y2-9,ms-52,8,a.dead?1-a.rt/12:a.hp/a.max,a.dead?'#888':'#41d08a'); });
   // الرسائل
   ctx.textAlign='center';
   let yy=H*.22;
@@ -1502,6 +1519,62 @@ function drawHUD(){
   }
 }
 
+/* ================= الجيش والأسرى والمركبات الحليفة ================= */
+const CNAMES=['سالم','خالد','يوسف','هادي','ماجد','فهد','نواف','بدر','طارق','زياد','رامي','وليد'];
+const STORY=['المافيا خطفت ابني… ورحلة البحث تبدأ من المدينة','العاصفة تخفي آثار العصابة… حرّر الأسرى ليساعدوك','في الجليد معسكر العصابة… وجيشك يكبر','الأرض البركانية: اقتربتَ من وكر المافيا','كهف زعيم المافيا… هنا يُحتجز ابني — المعركة الأخيرة!'];
+function spawnArmy(g){
+  const n=Math.min(2+Math.floor(g*1.3),12), nv=Math.min(g>>1,5), KS=[['car',0],['tank',0],['car',1],['tank',1],['tank',2]];
+  allies=[]; for(let i=0;i<n;i++) allies.push(mkAlly(i,i<2?(i?'عمر':'ياسر'):CNAMES[(i-2)%12]));
+  for(let i=0;i<nv;i++){
+    const a=allies[n-1-i], K=KS[i], v=mkVeh(K[0],SX,SY+150,-Math.PI/2,K[1]);
+    for(let t=0;t<60;t++){ const an=rnd(0,TAU), d=rnd(130,300), x=SX+Math.cos(an)*d, y=SY+Math.sin(an)*d; if(isFree(x,y,v.r+6)){ v.x=x; v.y=y; break; } }
+    v.ai=true; v.crew=a; a.drv=v; vehicles.push(v);
+  }
+}
+function spawnCaps(g){
+  caps=[]; capFreed=0; const n=2+Math.min(g>>2,4), last=g===TOTAL-1;
+  const hs=houses.filter(h=>dist(h.x+h.w/2,h.y+h.h/2,SX,SY)>700); hs.sort((a,b)=>dist(b.x,b.y,SX,SY)-dist(a.x,a.y,SX,SY));
+  for(let i=0;i<n+(last?1:0);i++){
+    const son=last&&i===n, h=hs.length?(son?hs[0]:hs[rint(0,hs.length-1)]):null; let x=0,y=0,ok=false;
+    for(let t=0;t<40&&!ok;t++){ if(h){ x=rnd(h.x+34,h.x+h.w-34); y=rnd(h.y+34,h.y+h.h-34); } else { x=rnd(300,WORLD-300); y=rnd(300,WORLD-300); } ok=isFree(x,y,20); }
+    if(ok) caps.push({x,y,p:0,done:false,son,name:CNAMES[rint(0,11)]});
+  }
+}
+function updCaps(dt){
+  for(const c of caps){
+    if(c.done) continue;
+    if(dist(c.x,c.y,pl.x,pl.y)<62){ c.p+=dt/(c.son?2:1.4); if(c.p>=1){
+      c.done=true; capFreed++; sfx('pick');
+      if(c.son){ sonFree=true; msg('وجدتُ ابني! 💙',true); }
+      else if(allies.length<16){ const a=mkAlly(allies.length,c.name); a.x=c.x; a.y=c.y; a.lx=c.x; a.ly=c.y; allies.push(a); msg('✚ انضمّ '+c.name+' إلى جيشك!'); }
+    } } else c.p=Math.max(0,c.p-dt*.5);
+  }
+}
+function updAiVeh(v,dt){
+  const V=VK[v.type][v.k], tank=v.type==='tank';
+  v.cd=Math.max(0,v.cd-dt); v.mcd=Math.max(0,v.mcd-dt); v.fl=Math.max(0,v.fl-dt);
+  let tg=null, bd=800; for(const e of enemies){ if(e.dead) continue; const d=dist(v.x,v.y,e.x,e.y); if(d<bd){ bd=d; tg=e; } }
+  const dp=dist(v.x,v.y,pl.x,pl.y); let ang=v.a, mv=0;
+  if(dp>1500){ v.x=pl.x+rnd(-150,150); v.y=pl.y+rnd(-150,150); collideCircle(v,v.r); }
+  if(tg){
+    const at=Math.atan2(tg.y-v.y,tg.x-v.x); v.ta+=clamp(angDiff(v.ta,at),-3*dt,3*dt);
+    if(bd>(tank?420:260)){ ang=at; mv=.8; } else if(bd<150){ ang=at+Math.PI; mv=.5; }
+    if(Math.abs(angDiff(v.ta,at))<.12){
+      if(v.mcd<=0){ v.mcd=V.rt*1.6; const L=tank?60:32; spawnBullet(v.x+Math.cos(v.ta)*L,v.y+Math.sin(v.ta)*L,v.ta+rnd(-.06,.06),1100,V.dm,.9,'p',0); sfx('smg',v.x,v.y,.5); }
+      if(tank&&v.cd<=0&&bd>200){ v.cd=V.cd+1.2; spawnBullet(v.x+Math.cos(v.ta)*70,v.y+Math.sin(v.ta)*70,v.ta,820,0,1.6,'p',2,V.rad,V.ed); sfx('cannon',v.x,v.y,.9); }
+    }
+  } else {
+    if(dp>260){ ang=Math.atan2(pl.y-v.y,pl.x-v.x); mv=Math.min(1,dp/500); }
+    v.ta+=clamp(angDiff(v.ta,v.a),-3*dt,3*dt);
+  }
+  const da=angDiff(v.a,ang); v.a+=clamp(da,-1.6*dt,1.6*dt);
+  v.speed+=(V.s*.8*mv*Math.max(.2,Math.cos(da))-v.speed)*Math.min(1,dt*2);
+  v.x+=Math.cos(v.a)*v.speed*dt; v.y+=Math.sin(v.a)*v.speed*dt;
+  if(collideCircle(v,v.r)) v.speed*=.5;
+  if(Math.abs(v.speed)>110) for(const e of enemies){ if(!e.dead&&e.type[0]!=='t'&&dist(v.x,v.y,e.x,e.y)<v.r+e.r) damageEnemy(e,Math.abs(v.speed)*.8,v.a); }
+  if(v.hp<v.max*.4&&Math.random()<dt*10) part(v.x+rnd(-10,10),v.y+rnd(-10,10),rnd(-10,10),rnd(-30,-10),rnd(.6,1),rnd(8,15),'#444','smoke');
+}
+
 /* ================= الرفاق ================= */
 function mkAlly(i,name){ return {name,i,x:SX,y:SY,a:-Math.PI/2,hp:160,max:160,r:14,cd:rnd(.2,.6),shots:0,flash:0,flash2:0,dead:false,rt:0,tg:null,tgT:0,sT:2,strafe:1,lx:0,ly:0,chk:.5,stuck:0,sa:0,hurt:0}; }
 function placeNear(a){
@@ -1516,19 +1589,20 @@ function hurtAlly(a,d){
 function hurtT(P,d){ if(P===pl) hurtPlayer(d); else hurtAlly(P,d); }
 function pickTarget(e){
   let bt=pl, bd=dist(e.x,e.y,pl.x,pl.y);
-  for(const a of allies){ if(a.dead) continue; const d=dist(e.x,e.y,a.x,a.y); if(d<bd*.8&&d<650){ bt=a; bd=d; } }
+  for(const a of allies){ if(a.dead||a.drv) continue; const d=dist(e.x,e.y,a.x,a.y); if(d<bd*.8&&d<650){ bt=a; bd=d; } }
   e.tg=bt;
 }
 function updAllies(dt){
   for(const a of allies){
     if(a.dead){ a.rt-=dt; if(a.rt<=0){ a.dead=false; a.hp=a.max*.7; placeNear(a); msg('عاد '+a.name+' إلى المعركة'); } continue; }
+    if(a.drv){ const v=a.drv; if(v.dead){ a.drv=null; placeNear(a); msg('نزل '+a.name+' من المركبة المدمّرة'); } else { a.x=v.x; a.y=v.y; a.a=v.ta; } continue; }
     a.flash=Math.max(0,a.flash-dt); a.flash2=Math.max(0,a.flash2-dt); a.cd-=dt; a.hurt=Math.max(0,a.hurt-dt);
     if(a.hurt<=0&&a.hp<a.max) a.hp=Math.min(a.max,a.hp+4*dt);
     if(a.rd){ const v=a.rd;
       if(v.dead||!v.occ){ a.rd=null; placeNear(a); continue; }
-      a.x=v.x+Math.cos(v.a)*(a.i?-22:-2)+Math.cos(v.a+1.5708)*(a.i?14:-12); a.y=v.y+Math.sin(v.a)*(a.i?-22:-2)+Math.sin(v.a+1.5708)*(a.i?14:-12);
+      a.x=v.x+Math.cos(v.a)*(a.seat?-22:-2)+Math.cos(v.a+1.5708)*(a.seat?14:-12); a.y=v.y+Math.sin(v.a)*(a.seat?-22:-2)+Math.sin(v.a+1.5708)*(a.seat?14:-12);
       a.tgT-=dt; if(a.tgT<=0||!a.tg||a.tg.dead){ a.tgT=.25; a.tg=null; let bd=700; for(const e of enemies){ if(e.dead) continue; const d=dist(a.x,a.y,e.x,e.y); if(d<bd){ bd=d; a.tg=e; } } }
-      if(a.tg){ a.a=Math.atan2(a.tg.y-a.y,a.tg.x-a.x); if(a.cd<=0){ spawnBullet(a.x+Math.cos(a.a)*30,a.y+Math.sin(a.a)*30,a.a+rnd(-.07,.07),1300,a.i?12:15,.9,'p',0); sfx('smg',a.x,a.y,.5); a.flash2=.05; a.cd=a.i?.2:.075; } } else a.a=v.ta;
+      if(a.tg){ a.a=Math.atan2(a.tg.y-a.y,a.tg.x-a.x); if(a.cd<=0){ spawnBullet(a.x+Math.cos(a.a)*30,a.y+Math.sin(a.a)*30,a.a+rnd(-.07,.07),1300,a.seat?12:15,.9,'p',0); sfx('smg',a.x,a.y,.5); a.flash2=.05; a.cd=a.seat?.2:.075; } } else a.a=v.ta;
       continue; }
     const dp=dist(a.x,a.y,pl.x,pl.y);
     if(dp>900){ placeNear(a); continue; }
@@ -1537,8 +1611,8 @@ function updAllies(dt){
       a.tgT=.3; a.tg=null; let bd=620;
       for(const e of enemies){ if(e.dead) continue; const d=dist(a.x,a.y,e.x,e.y); if(d<bd&&!segBlocked(a.x,a.y,e.x,e.y)){ bd=d; a.tg=e; } }
     }
-    const slot=a.i?1:-1, perp=pl.aimA+slot*Math.PI/2;
-    const fx=pl.x+Math.cos(perp)*85-Math.cos(pl.aimA)*40, fy=pl.y+Math.sin(perp)*85-Math.sin(pl.aimA)*40;
+    const slot=a.i%2?1:-1, perp=pl.aimA+slot*Math.PI/2, off=85+(a.i>>1)*48, bk=40+(a.i>>2)*30;
+    const fx=pl.x+Math.cos(perp)*off-Math.cos(pl.aimA)*bk, fy=pl.y+Math.sin(perp)*off-Math.sin(pl.aimA)*bk;
     let ang=0, mv=0, want=a.a;
     if(a.tg){
       const dtg=dist(a.x,a.y,a.tg.x,a.tg.y), at=Math.atan2(a.tg.y-a.y,a.tg.x-a.x); want=at;
@@ -1568,13 +1642,13 @@ function updAllies(dt){
 /* ================= الطقس ================= */
 function updWeather(dt){
   if(!TH) return;
-  const n=TH.id==='storm'?170:TH.id==='ice'?130:0;
+  const n={storm:170,ice:130,lava:80,cave:45}[TH.id]||0;
   while(wx.length<n) wx.push({x:rnd(0,W),y:rnd(0,H),s:rnd(.7,1.3),p:rnd(0,TAU)});
   if(wx.length>n) wx.length=n;
   for(const p of wx){
     if(TH.id==='storm'){ p.y+=900*p.s*dt; p.x-=260*p.s*dt; }
-    else { p.y+=(50+60*p.s)*dt; p.x+=Math.sin(time*1.5+p.p)*30*dt-20*dt; }
-    if(p.y>H+10){ p.y=-10; p.x=rnd(0,W+200); }
+    else if(TH.id==='lava'){ p.y-=(40+90*p.s)*dt; p.x+=Math.sin(time*2+p.p)*25*dt; } else if(TH.id==='cave'){ p.y+=12*p.s*dt; p.x+=Math.sin(time+p.p)*14*dt; } else { p.y+=(50+60*p.s)*dt; p.x+=Math.sin(time*1.5+p.p)*30*dt-20*dt; }
+    if(TH.id==='lava'){ if(p.y<-12){ p.y=H+10; p.x=rnd(0,W); } } else if(p.y>H+10){ p.y=-10; p.x=rnd(0,W+200); }
     if(p.x<-20) p.x=W+rnd(0,40);
   }
   if(TH.id==='storm'){
@@ -1597,6 +1671,12 @@ function drawWeather(){
     g.addColorStop(0,'rgba(235,245,255,0)'); g.addColorStop(1,'rgba(235,245,255,.42)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     ctx.fillStyle='rgba(255,255,255,.85)';
     for(const p of wx){ ctx.beginPath(); ctx.arc(p.x,p.y,1.2+p.s*1.2,0,TAU); ctx.fill(); }
+  } else if(TH.id==='lava'){
+    const g=ctx.createRadialGradient(px,py,Math.min(W,H)*.3,px,py,Math.max(W,H)*.8); g.addColorStop(0,'rgba(120,30,0,0)'); g.addColorStop(1,'rgba(90,15,0,.5)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(255,150,40,.9)'; for(const p of wx){ ctx.beginPath(); ctx.arc(p.x,p.y,1+p.s*1.3,0,TAU); ctx.fill(); }
+  } else if(TH.id==='cave'){
+    const g=ctx.createRadialGradient(px,py,Math.min(W,H)*.1,px,py,Math.max(W,H)*.55); g.addColorStop(0,'rgba(0,0,6,0)'); g.addColorStop(.35,'rgba(0,0,6,.55)'); g.addColorStop(1,'rgba(0,0,6,.95)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(200,200,225,.35)'; for(const p of wx){ ctx.beginPath(); ctx.arc(p.x,p.y,1+p.s,0,TAU); ctx.fill(); }
   }
 }
 
@@ -1714,7 +1794,7 @@ function showAuth(){ setErr(''); state='menu'; pl=null; showScreen('scrAuth'); }
 const SCR=['scrIntro','scrLoad','scrAuth','scrMain','scrLevels','scrSet','scrBye','pauseS','overS','winS'];
 const SCENE=['scrAuth','scrMain','scrLevels','scrSet','scrIntro'];
 function showScreen(id){ SCR.forEach(s=>$(s).classList.toggle('hidden',s!==id)); document.body.classList.toggle('nogame',id!==null);
-  const sc=SCENE.includes(id)&&state!=='pause'; document.body.classList.toggle('scene',sc); if(sc&&id!=='scrAuth') musicOn(); else musicOff(); }
+  const sc=SCENE.includes(id)&&state!=='pause'; document.body.classList.toggle('scene',sc); if((sc&&id!=='scrAuth')||(id===null&&state==='play')) musicOn(); else musicOff(); }
 function enterMain(){ if(!introDone&&user){ introDone=true; pl=null; state='menu'; refreshMain(); playIntro(); return; } pl=null; state='menu'; engineOff(); refreshMain(); showScreen('scrMain'); }
 function refreshMain(){
   if(!profile||!user) return;
@@ -1843,7 +1923,7 @@ function paint(tl,t){
   if(tl<6){ const a=k<.15?1-k/.15:k>.85?(k-.85)/.15:0; g.fillStyle='rgba(0,0,0,'+a*.9+')'; g.fillRect(0,0,w,h); }
   if(tl>14&&tl<14.5){ g.fillStyle='rgba(255,255,255,'+(1-(tl-14)/.5)+')'; g.fillRect(0,0,w,h); }
   g.restore(); }
-const PH=[[0,'cap','بيوتٌ هُدّمت… وأحلامٌ دُفنت تحت الركام'],[2,'cap','المدينة التي كانت تضجّ بالحياة صارت أطلالاً'],[4,'cap','لكنّ الأمل ما زال حيّاً في القلوب'],[6,'bh','يجب أن نحارب من أجل الوطن!'],[10,'be','لن تستطيعوا القضاء علينا!'],[14,'clr'],[19,'ttl']];
+const PH=[[0,'cap','عصابة المافيا حوّلت المدينة إلى ركام…'],[2,'cap','واختطفت ابني الوحيد من بين ذراعيّ'],[4,'cap','لن أتوقف حتى أجده… ولو واجهتُ الجحيم'],[6,'bh','سأنقذ ابني وأحرر كل من أسروهم!'],[10,'be','لن تجده أبداً… المافيا لا تُهزم!'],[14,'clr'],[19,'ttl']];
 function setPh(tl){ let i=-1; PH.forEach((p,j)=>{ if(tl>=p[0]) i=j; }); if(i===curPh) return; curPh=i; const p=PH[i], cap=$('cap');
   if(p[1]==='cap'){ cap.textContent=p[2]; cap.classList.add('on'); }
   else if(p[1]==='bh'){ cap.classList.remove('on'); $('bubH').textContent='🪖 '+p[2]; $('bubH').classList.add('on'); }
@@ -1861,12 +1941,19 @@ function bgLoop(ts){ requestAnimationFrame(bgLoop); if(!document.body.classList.
 requestAnimationFrame(bgLoop);
 let mus=null, mStep=0;
 function musicOn(){ initAudio(); if(!ac||mus) return; mStep=0; let nt=ac.currentTime+.1;
-  mus=setInterval(()=>{ while(nt<ac.currentTime+.3){ mStepPlay(nt); nt+=60/104/4; mStep++; } },80); }
+  mus=setInterval(()=>{ while(nt<ac.currentTime+.3){ mStepPlay(nt); nt+=60/(state==='play'?132:112)/4; mStep++; } },80); }
 function musicOff(){ if(mus){ clearInterval(mus); mus=null; } }
-function mStepPlay(t){ pan=0; const s=mStep%16;
-  if(s%8===0) tn(t,.3,'sine',120,40,.9); if(s%8===4) nz(t,.18,'bandpass',1800,900,.5,.8); if(s%2===0) nz(t,.04,'highpass',6000,5000,.1);
-  const R=[110,87.3,98,82.4][(mStep>>4)&3]; if(s%2===0) tn(t,.2,'sawtooth',R,R,.14);
-  const L=[440,0,523,0,659,0,587,523,440,0,392,0,440,523,587,0][s]; if(L){ tn(t,.35,'square',L,L,.06); tn(t,.35,'sawtooth',L*1.005,L*1.005,.04); } }
+function mStepPlay(t){ pan=0; const s=mStep%16, b=(mStep>>4)&3, v=state==='play'?.75:1;
+  const CH=[[110,130.8,164.8],[87.3,110,130.8],[130.8,164.8,196],[98,123.5,146.8]], c=CH[b];
+  if(s%4===0){ tn(t,.4,'sine',100,32,1.1*v); nz(t,.12,'lowpass',500,100,.5*v); }
+  if(s===6||s===11||s===14) tn(t,.25,'sine',140,45,.7*v);
+  if(s%8===4) nz(t,.2,'bandpass',1900,800,.5*v,.8);
+  if(s%2===1) nz(t,.03,'highpass',7000,6000,.08*v);
+  if(s%2===0) tn(t,.22,'sawtooth',c[0],c[0],.15*v);
+  if(s===0||s===8) for(const f of c){ tn(t,.9,'sawtooth',f*2,f*2,.045*v); tn(t,.9,'square',f*4,f*4,.02*v); }
+  if(s===0&&b===0) nz(t,1.4,'highpass',5000,2500,.22*v);
+  if(s%2===0){ const m=c[(s>>1)%3]*(s%8<4?4:2); tn(t,.2,'square',m,m,.055*v); }
+  if(state==='play'&&s%4===2) tn(t,.12,'sawtooth',c[2]*4,c[2]*4,.03*v); }
 addEventListener('pointerdown',()=>{ if(document.body.classList.contains('scene')&&!document.body.classList.contains('editing')) musicOn(); try{ screen.orientation.lock('landscape').catch(()=>{}); }catch(e){} });
 
 /* ================= ربط الأزرار ================= */
