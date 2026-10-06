@@ -467,7 +467,7 @@ function addHouse(x,y,w,h){
     if(dist(cx+17,cy+17,hs.in.x,hs.in.y)>90) addCrate(cx,cy);
   }
 }
-const VK={car:[{n:'جيب مسلح',hp:240,s:430,r:30,dm:11,rt:.07,cd:1.4,rad:100,ed:140},{n:'سيارة رشاش ثقيل',hp:320,s:380,r:30,dm:20,rt:.06,cd:1.2,rad:115,ed:170}],
+const VK={car:[{n:'جيب مسلح',hp:240,s:430,r:30,dm:11,rt:.07,cd:1.4,rad:100,ed:140},{n:'سيارة رشاش ثقيل',hp:320,s:380,r:30,dm:20,rt:.06,cd:1.2,rad:115,ed:170},{n:'بوكسي دوشكا',hp:420,s:420,r:32,dm:30,rt:.1,cd:1.4,rad:110,ed:150}],
  tank:[{n:'دبابة',hp:900,s:170,r:44,dm:16,rt:.09,cd:1.1,rad:135,ed:180,sc:1},{n:'دبابة خفيفة',hp:560,s:250,r:36,dm:12,rt:.06,cd:.8,rad:110,ed:120,sc:.82},{n:'دبابة ثقيلة',hp:1600,s:115,r:50,dm:24,rt:.08,cd:1.7,rad:175,ed:260,sc:1.14}]};
 function mkVeh(type,x,y,a,k){
   const car=type==='car', cols=['#b33','#36a','#d9a321','#cfcfcf','#2a8','#838']; k=k||0; const V=VK[type][k];
@@ -559,7 +559,7 @@ function newGame(g){
       w:WP.map(d=>({mag:d.mag,res:d.res})),px:0,py:0,vxs:0,vys:0,noAmmoT:0,hurtSnd:0,mvx:0,mvy:0};
   enemies=[];bullets=[];grenades=[];parts=[];texts=[];pickups=[];pending=[];msgs=[];
   wave=1+g; waveState='break'; waveTimer=2.5; queue=buildQueue(g); spawnT=0; score=0;kills=0;combo=0;comboT=0;lvTime=0;allyDown=0;strag=0;
-  spawnArmy(g); spawnCaps(g); sonFree=false; sonMsg=false; capMsgT=4;
+  spawnArmy(g); spawnGift(g); spawnCaps(g); sonFree=false; sonMsg=false; capMsgT=4;
   cam.x=pl.x;cam.y=pl.y;cam.shake=0;
   wx=[]; lightT=rnd(3,7); flashL=0;
   for(let i=0;i<80;i++){
@@ -644,7 +644,7 @@ function damageVehicle(v,d){
 }
 function destroyVehicle(v){
   if(v.dead) return; v.dead=true;
-  if(v.crew){ v.crew.drv=null; placeNear(v.crew); msg('نزل '+v.crew.name+' من المركبة المدمّرة'); }
+  if(v.crew){ v.crew.drv=null; dismount(v.crew,v); msg('نزل '+v.crew.name+' من المركبة المدمّرة'); }
   if(v.occ){ ejectPlayer(v); hurtPlayerDirect(30); }
   pending.push({t:.02,x:v.x,y:v.y,R:v.type==='tank'?170:140,dmg:v.type==='tank'?140:110,own:'w'});
   wrecks.push({x:v.x,y:v.y,a:v.a,ta:v.ta,type:v.type});
@@ -911,7 +911,7 @@ function startLevel(g){
   if(ac) ac.resume();
   msg(TH.name+' — المستوى '+(g%STAGE_LEVELS+1),true);
   msg(STORY[Math.floor(g/STAGE_LEVELS)]);
-  msg('اقضِ على '+PER_LEVEL+' عدواً وحرّر كل الأسرى ('+caps.length+') للانتقال — ياسر وعمر معك والباقي ينتشر');
+  msg('اقضِ على '+PER_LEVEL+' عدواً وحرّر كل الأسرى ('+caps.length+') للانتقال — ياسر وعمر معك والباقي ينتشر'); if(g===3) msg('🎁 هديتك: بوكسي دوشكا ورامٍ انضمّ لفريقك!',true);
 }
 function gameOver(){
   if(state!=='play') return; state='over'; engineOff();
@@ -932,7 +932,7 @@ function levelWin(){
   $('winTit').textContent=last?'🏆 أنقذتَ ابنك وسقطت المافيا!':'✔ اكتمل المستوى';
   $('winStars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
   $('winTxt').innerHTML=TH.name+' — المستوى '+(lvIdx%STAGE_LEVELS+1)+'<br>القتلى: '+kills+' • الوقت: '+t+' ث • النتيجة: '+score+' (مكافأة +'+bonus+')'+(last?'':'<br><span style="color:#8aff9a">تم فتح المستوى التالي</span>');
-  $('winTxt').innerHTML+='<br>الأسرى المنقَذون: '+capFreed+'/'+caps.length+' • جيشك: '+allies.length+' مقاتل'+(last?'<br><b style="color:#ffd54a">ضممتُ ابني إلى صدري… وانتهى حكم المافيا للأبد 💙</b>':''); $('wNext').classList.toggle('hidden',last);
+  $('winTxt').innerHTML+='<br>الأسرى المنقَذون: '+capFreed+'/'+caps.length+' • جيشك: '+allies.length+' مقاتل'+(last?'<br><b style="color:#ffd54a">ضممتُ ابني إلى صدري… وانتهى حكم المافيا للأبد 💙</b>':''); if(lvIdx===2) $('winTxt').innerHTML+='<br><b style="color:#ffd54a">🎁 هدية: بوكسي دوشكا مع رامٍ ينضم لفريقك في الجولة القادمة</b>'; $('wNext').classList.toggle('hidden',last);
   showScreen('winS');
 }
 
@@ -1263,6 +1263,16 @@ function drawMan(x,y,a,body,helm,glen,flash,hit){
   if(flash>0){ ctx.globalCompositeOperation='lighter'; ctx.fillStyle='#ffd34d'; ctx.beginPath(); ctx.arc(8+glen,0,9+Math.random()*4,0,TAU); ctx.fill(); ctx.globalCompositeOperation='source-over'; }
   ctx.restore();
 }
+function drawPk(v){
+  const px=v.x-Math.cos(v.a)*20, py=v.y-Math.sin(v.a)*20;
+  ctx.save(); ctx.translate(v.x,v.y); ctx.rotate(v.a);
+  ctx.fillStyle='#3a4228'; rr(-33,-15,27,30,3); ctx.fill(); ctx.fillStyle='#232a17'; rr(-30,-12,21,24,2); ctx.fill();
+  ctx.restore();
+  drawMan(px,py,v.ta,'#4a5a3a','#2f3a22',0,0,false);
+  ctx.save(); ctx.translate(px,py); ctx.rotate(v.ta);
+  ctx.fillStyle='#1a1a1a'; ctx.fillRect(2,-2,40,4); ctx.fillStyle='#555'; ctx.fillRect(-5,-5.5,13,11); ctx.fillStyle='#888'; ctx.fillRect(38,-3.5,6,7);
+  ctx.restore();
+}
 function drawCar(v){
   ctx.save(); ctx.translate(v.x,v.y); ctx.rotate(v.a);
   ctx.fillStyle='rgba(0,0,0,.28)'; rr(-33,-16,70,40,9); ctx.fill();
@@ -1275,7 +1285,7 @@ function drawCar(v){
   ctx.fillStyle='#16222a'; rr(-27,-12,5,24,2); ctx.fill();
   ctx.fillStyle='#ffe58a'; ctx.beginPath(); ctx.arc(33,-11,3.2,0,TAU); ctx.arc(33,11,3.2,0,TAU); ctx.fill();
   ctx.fillStyle='#c22'; ctx.fillRect(-35,-14,3,7); ctx.fillRect(-35,7,3,7);
-  ctx.restore(); ctx.save(); ctx.translate(v.x,v.y); ctx.rotate(v.ta); ctx.fillStyle='#222'; ctx.fillRect(2,-2.5,v.k?32:24,5); ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(0,0,7,0,TAU); ctx.fill(); ctx.restore();
+  ctx.restore(); if(v.pk) return; ctx.save(); ctx.translate(v.x,v.y); ctx.rotate(v.ta); ctx.fillStyle='#222'; ctx.fillRect(2,-2.5,v.k?32:24,5); ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(0,0,7,0,TAU); ctx.fill(); ctx.restore();
 }
 function drawTankBody(x,y,a,ta,col,fl,hurtWhite){
   ctx.save(); ctx.translate(x,y); ctx.rotate(a);
@@ -1394,7 +1404,7 @@ function render(){
   // المركبات
   for(const v of vehicles){
     if(v.dead||!vis(v.x,v.y,70)) continue;
-    if(v.type==='car') drawCar(v); else { const sc=VK.tank[v.k].sc; ctx.save(); ctx.translate(v.x,v.y); ctx.scale(sc,sc); ctx.translate(-v.x,-v.y); drawTankBody(v.x,v.y,v.a,v.ta,v.col,v.fl,v.fl>0); ctx.restore(); }
+    if(v.type==='car'){ drawCar(v); if(v.pk) drawPk(v); } else { const sc=VK.tank[v.k].sc; ctx.save(); ctx.translate(v.x,v.y); ctx.scale(sc,sc); ctx.translate(-v.x,-v.y); drawTankBody(v.x,v.y,v.a,v.ta,v.col,v.fl,v.fl>0); ctx.restore(); }
     if(v.ai){ ctx.strokeStyle='#41d08a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(v.x,v.y,v.r+7,0,TAU); ctx.stroke(); ctx.font='bold 11px Tahoma,Arial'; ctx.textAlign='center'; ctx.fillStyle='#8dffc0'; ctx.fillText(v.crew.name,v.x,v.y-v.r-16); }
     if(!v.occ&&v.hp<v.max){ ctx.fillStyle='#000a'; ctx.fillRect(v.x-22,v.y-v.r-12,44,5); ctx.fillStyle=v.hp>v.max*.4?'#5c5':'#e44'; ctx.fillRect(v.x-21,v.y-v.r-11,42*clamp(v.hp/v.max,0,1),3); }
   }
@@ -1540,6 +1550,13 @@ function spawnArmy(g){
     v.ai=true; v.crew=a; a.drv=v; vehicles.push(v);
   }
 }
+function spawnGift(g){
+  if(g<3) return;
+  const a=mkAlly(allies.length,'رامي الدوشكا'), v=mkVeh('car',SX,SY+150,-Math.PI/2,2);
+  v.pk=true; v.col='#5d6b3f';
+  for(let t=0;t<60;t++){ const an=rnd(0,TAU), d=rnd(110,220), x=SX+Math.cos(an)*d, y=SY+Math.sin(an)*d; if(isFree(x,y,v.r+6)){ v.x=x; v.y=y; break; } }
+  v.ai=true; v.crew=a; a.drv=v; a.x=v.x; a.y=v.y; allies.push(a); vehicles.push(v);
+}
 function spawnCaps(g){
   caps=[]; capFreed=0; const n=2+Math.min(g>>2,4), last=g===TOTAL-1;
   const hs=houses.filter(h=>dist(h.x+h.w/2,h.y+h.h/2,SX,SY)>700); hs.sort((a,b)=>dist(b.x,b.y,SX,SY)-dist(a.x,a.y,SX,SY));
@@ -1566,12 +1583,13 @@ function updAiVeh(v,dt){
   v.cd=Math.max(0,v.cd-dt); v.mcd=Math.max(0,v.mcd-dt); v.fl=Math.max(0,v.fl-dt);
   let tg=null, bd=800; for(const e of enemies){ if(e.dead) continue; const d=dist(v.x,v.y,e.x,e.y); if(d<bd){ bd=d; tg=e; } }
   const dp=dist(v.x,v.y,pl.x,pl.y); let ang=v.a, mv=0;
-  if(dp>1500){ v.x=pl.x+rnd(-150,150); v.y=pl.y+rnd(-150,150); collideCircle(v,v.r); }
+  
   if(tg){
     const at=Math.atan2(tg.y-v.y,tg.x-v.x); v.ta+=clamp(angDiff(v.ta,at),-3*dt,3*dt);
     if(bd>(tank?420:260)){ ang=at; mv=.8; } else if(bd<150){ ang=at+Math.PI; mv=.5; }
     if(Math.abs(angDiff(v.ta,at))<.12){
-      if(v.mcd<=0){ v.mcd=V.rt*1.6; const L=tank?60:32; spawnBullet(v.x+Math.cos(v.ta)*L,v.y+Math.sin(v.ta)*L,v.ta+rnd(-.06,.06),1100,V.dm,.9,'p',0); sfx('smg',v.x,v.y,.5); }
+      if(v.mcd<=0){ v.mcd=V.rt*(v.pk?1:1.6); const L=tank?60:32, pk=v.pk;
+        spawnBullet(v.x+(pk?-Math.cos(v.a)*20+Math.cos(v.ta)*42:Math.cos(v.ta)*L),v.y+(pk?-Math.sin(v.a)*20+Math.sin(v.ta)*42:Math.sin(v.ta)*L),v.ta+rnd(-.05,.05),pk?1400:1100,V.dm,pk?1.1:.9,'p',0); sfx(pk?'rifle':'smg',v.x,v.y,.6); }
       if(v.cd<=0&&bd>200){ v.cd=V.cd+1.2; spawnBullet(v.x+Math.cos(v.ta)*70,v.y+Math.sin(v.ta)*70,v.ta,820,0,1.6,'p',2,V.rad,V.ed); sfx('cannon',v.x,v.y,.9); }
     }
   } else {
@@ -1591,6 +1609,14 @@ function mkAlly(i,name){ return {name,i,x:SX,y:SY,a:-Math.PI/2,hp:160,max:160,r:
 function placeNear(a){
   for(let i=0;i<40;i++){ const an=rnd(0,TAU), d=rnd(60,140), x=pl.x+Math.cos(an)*d, y=pl.y+Math.sin(an)*d; if(isFree(x,y,16)){ a.x=x; a.y=y; a.lx=x; a.ly=y; return; } }
   a.x=pl.x; a.y=pl.y;
+}
+function placeFar(a){
+  for(let i=0;i<40;i++){ const an=rnd(0,TAU), d=rnd(650,850), x=pl.x+Math.cos(an)*d, y=pl.y+Math.sin(an)*d; if(isFree(x,y,16)){ a.x=x; a.y=y; a.lx=x; a.ly=y; return; } }
+  placeNear(a);
+}
+function dismount(a,v){
+  for(let i=0;i<10;i++){ const an=v.a+Math.PI/2+i*.63*(i%2?1:-1), d=v.r+a.r+10, x=v.x+Math.cos(an)*d, y=v.y+Math.sin(an)*d; if(isFree(x,y,a.r+2)){ a.x=x; a.y=y; break; } }
+  a.lx=a.x; a.ly=a.y;
 }
 function hurtAlly(a,d){
   if(a.dead||d<=0) return;
@@ -1614,27 +1640,29 @@ function roamGoal(a){
   }
   return a.pt;
 }
+let fHd=-Math.PI/2;
 function updAllies(dt){
+  if(Math.hypot(pl.px,pl.py)>40) fHd=Math.atan2(pl.py,pl.px);
   for(const a of allies){
-    if(a.dead){ a.rt-=dt; if(a.rt<=0){ a.dead=false; a.hp=a.max*.7; placeNear(a); msg('عاد '+a.name+' إلى المعركة'); } continue; }
-    if(a.drv){ const v=a.drv; if(v.dead){ a.drv=null; placeNear(a); msg('نزل '+a.name+' من المركبة المدمّرة'); } else { a.x=v.x; a.y=v.y; a.a=v.ta; } continue; }
+    if(a.dead){ a.rt-=dt; if(a.rt<=0){ a.dead=false; a.hp=a.max*.7; placeFar(a); msg('عاد '+a.name+' إلى المعركة'); } continue; }
+    if(a.drv){ const v=a.drv; if(v.dead){ a.drv=null; dismount(a,v); msg('نزل '+a.name+' من المركبة المدمّرة'); } else { a.x=v.x; a.y=v.y; a.a=v.ta; } continue; }
     a.flash=Math.max(0,a.flash-dt); a.flash2=Math.max(0,a.flash2-dt); a.cd-=dt; a.hurt=Math.max(0,a.hurt-dt);
     if(a.hurt<=0&&a.hp<a.max) a.hp=Math.min(a.max,a.hp+4*dt);
     if(a.rd){ const v=a.rd;
-      if(v.dead||!v.occ){ a.rd=null; placeNear(a); continue; }
+      if(v.dead||!v.occ){ a.rd=null; dismount(a,v); continue; }
       a.x=v.x+Math.cos(v.a)*(a.seat?-22:-2)+Math.cos(v.a+1.5708)*(a.seat?14:-12); a.y=v.y+Math.sin(v.a)*(a.seat?-22:-2)+Math.sin(v.a+1.5708)*(a.seat?14:-12);
       a.tgT-=dt; if(a.tgT<=0||!a.tg||a.tg.dead){ a.tgT=.25; a.tg=null; let bd=700; for(const e of enemies){ if(e.dead) continue; const d=dist(a.x,a.y,e.x,e.y); if(d<bd){ bd=d; a.tg=e; } } }
       if(a.tg){ a.a=Math.atan2(a.tg.y-a.y,a.tg.x-a.x); if(a.cd<=0){ spawnBullet(a.x+Math.cos(a.a)*30,a.y+Math.sin(a.a)*30,a.a+rnd(-.07,.07),1300,a.seat?12:15,.9,'p',0); sfx('smg',a.x,a.y,.5); a.flash2=.05; a.cd=a.seat?.2:.075; } } else a.a=v.ta;
       continue; }
     const dp=dist(a.x,a.y,pl.x,pl.y);
-    if(a.i<2&&dp>900){ placeNear(a); continue; }
+    
     a.tgT-=dt;
     if(a.tgT<=0||!a.tg||a.tg.dead){
       a.tgT=.3; a.tg=null; let bd=620;
       for(const e of enemies){ if(e.dead) continue; const d=dist(a.x,a.y,e.x,e.y); if(d<bd&&!segBlocked(a.x,a.y,e.x,e.y)){ bd=d; a.tg=e; } }
     }
-    const slot=a.i%2?1:-1, perp=pl.aimA+slot*Math.PI/2, off=85+(a.i>>1)*48, bk=40+(a.i>>2)*30;
-    const fx=pl.x+Math.cos(perp)*off-Math.cos(pl.aimA)*bk, fy=pl.y+Math.sin(perp)*off-Math.sin(pl.aimA)*bk;
+    const slot=a.i%2?1:-1, perp=fHd+slot*Math.PI/2, off=62, bk=75;
+    const fx=pl.x+Math.cos(perp)*off-Math.cos(fHd)*bk, fy=pl.y+Math.sin(perp)*off-Math.sin(fHd)*bk;
     let ang=0, mv=0, want=a.a;
     if(a.tg){
       const dtg=dist(a.x,a.y,a.tg.x,a.tg.y), at=Math.atan2(a.tg.y-a.y,a.tg.x-a.x); want=at;
@@ -1651,7 +1679,8 @@ function updAllies(dt){
     a.chk-=dt;
     if(a.chk<=0){ a.chk=.5; if(mv>.4&&dist(a.x,a.y,a.lx,a.ly)<18){ a.stuck=.7; a.sa=ang+(Math.random()<.5?1:-1)*rnd(1.1,2.2); } a.lx=a.x; a.ly=a.y; }
     if(a.stuck>0){ ang=a.sa; a.stuck-=dt; mv=1; }
-    a.x+=Math.cos(ang)*205*mv*dt; a.y+=Math.sin(ang)*205*mv*dt;
+    const spd=(a.i<2&&dp>(a.tg?420:260))?205*clamp(dp/260,1,2.4):205;
+    a.x+=Math.cos(ang)*spd*mv*dt; a.y+=Math.sin(ang)*spd*mv*dt;
     collideCircle(a,a.r);
     a.a+=angDiff(a.a,want)*Math.min(1,dt*10);
     if(a.tg&&a.cd<=0&&Math.abs(angDiff(a.a,Math.atan2(a.tg.y-a.y,a.tg.x-a.x)))<.3){
